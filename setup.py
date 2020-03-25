@@ -53,7 +53,7 @@ def runSetup():
     docker = 'docker==2.5.1'
     dateutil = 'python-dateutil'
     addict = 'addict<=2.2.0'
-    sphinx = 'sphinx==1.7.5'
+    sphinx = 'sphinx>=2.4.4, <3'
     pathlib2 = 'pathlib2==2.3.2'
 
     core_reqs = [
@@ -160,6 +160,7 @@ def runSetup():
             'console_scripts': [
                 'toil = toil.utils.toilMain:main',
                 '_toil_worker = toil.worker:main',
+                'cwltoil = toil.cwl.cwltoil:cwltoil_was_removed [cwl]',
                 'toil-cwl-runner = toil.cwl.cwltoil:main [cwl]',
                 'toil-wdl-runner = toil.wdl.toilwdl:main',
                 '_toil_mesos_executor = toil.batchSystems.mesos.executor:main [mesos]',

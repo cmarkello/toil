@@ -49,6 +49,7 @@ from toil.test import (ToilTest,
                        needs_aws_s3,
                        needs_lsf,
                        needs_kubernetes,
+                       needs_fetchable_appliance,
                        needs_mesos,
                        needs_parasol,
                        needs_gridengine,
@@ -177,7 +178,8 @@ class hidden(object):
                                jobStoreID='3', requirements=defaultRequirements)
             job3 = self.batchSystem.issueBatchJob(jobNode3)
 
-            jobID, exitStatus, wallTime = self.batchSystem.getUpdatedBatchJob(maxWait=1000)
+            jobUpdateInfo = self.batchSystem.getUpdatedBatchJob(maxWait=1000)
+            jobID, exitStatus, wallTime = jobUpdateInfo.jobID, jobUpdateInfo.exitStatus, jobUpdateInfo.wallTime
             log.info('Third job completed: {} {} {}'.format(jobID, exitStatus, wallTime))
 
             # Since the first two jobs were killed, the only job in the updated jobs queue should
@@ -211,7 +213,8 @@ class hidden(object):
             jobNode4 = JobNode(command=command, jobName='test4', unitName=None,
                                jobStoreID='4', requirements=defaultRequirements)
             job4 = self.batchSystem.issueBatchJob(jobNode4)
-            jobID, exitStatus, wallTime = self.batchSystem.getUpdatedBatchJob(maxWait=1000)
+            jobUpdateInfo = self.batchSystem.getUpdatedBatchJob(maxWait=1000)
+            jobID, exitStatus, wallTime = jobUpdateInfo.jobID, jobUpdateInfo.exitStatus, jobUpdateInfo.wallTime
             self.assertEqual(exitStatus, 42)
             self.assertEqual(jobID, job4)
             # Now set the variable and ensure that it is present
@@ -219,9 +222,9 @@ class hidden(object):
             jobNode5 = JobNode(command=command, jobName='test5', unitName=None,
                                jobStoreID='5', requirements=defaultRequirements)
             job5 = self.batchSystem.issueBatchJob(jobNode5)
-            jobID, exitStatus, wallTime = self.batchSystem.getUpdatedBatchJob(maxWait=1000)
-            self.assertEqual(exitStatus, 23)
-            self.assertEqual(jobID, job5)
+            jobUpdateInfo = self.batchSystem.getUpdatedBatchJob(maxWait=1000)
+            self.assertEqual(jobUpdateInfo.exitStatus, 23)
+            self.assertEqual(jobUpdateInfo.jobID, job5)
         
         def testCheckResourceRequest(self):
             if isinstance(self.batchSystem, BatchSystemSupport):
@@ -345,6 +348,7 @@ class hidden(object):
 
 @needs_kubernetes
 @needs_aws_s3
+@needs_fetchable_appliance
 class KubernetesBatchSystemTest(hidden.AbstractBatchSystemTest):
     """
     Tests against the Kubernetes batch system
@@ -525,7 +529,7 @@ class MaxCoresSingleMachineBatchSystemTest(ToilTest):
                             while jobIds:
                                 job = bs.getUpdatedBatchJob(maxWait=10)
                                 self.assertIsNotNone(job)
-                                jobId, status, wallTime = job
+                                jobId, status, wallTime = job.jobID, job.exitStatus, job.wallTime
                                 self.assertEqual(status, 0)
                                 # would raise KeyError on absence
                                 jobIds.remove(jobId)
